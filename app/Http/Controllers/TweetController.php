@@ -11,29 +11,18 @@ class TweetController extends Controller
 {
     
     public function __construct()
-    {
-        $this->middleware('auth')->except(['index']);
-    }
-
-    public function index(Request $request)
 {
-    // eager load user and recent edits (latest first), include counts
-// ... in public function index(Request $request) {
+    $this->middleware('guest')->except('logout');
+}
 
-    // eager load user and recent edits (latest first), include counts
-    $tweets = Tweet::with([
-        'user:user_id,name', // Only select the necessary columns including the primary key
-        'edits' => function ($q) {
-            $q->latest(); // load edits in descending order
-        }
-    ])
-    ->withCount(['likes', 'retweets', 'edits']) // count related models
-    ->latest() // order tweets by latest
-    ->paginate(10);
+    public function index()
+{
+    $tweets = Tweet::with(['user', 'likes', 'retweets'])
+        ->latest()
+        ->paginate(10);
 
-return view('tweets.index', compact('tweets'));
-// ...
-    }
+    return view('dashboard', compact('tweets'));
+}
 
 
     public function store(Request $request)
