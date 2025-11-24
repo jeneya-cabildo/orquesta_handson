@@ -29,8 +29,7 @@ class Like extends Model
      */
     public function user()
     {
-        // users table uses 'user_id' as primary key in this app
-        return $this->belongsTo(User::class, 'user_id', 'user_id');
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     /**

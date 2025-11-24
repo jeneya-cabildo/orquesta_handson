@@ -6,7 +6,8 @@
                     <div>
                         <div class="text-2xl font-bold text-blue-600">{{ $user->name }}</div>
                         <div class="text-sm text-gray-400 mt-1">
-                            <i class=></i>Joined {{ $user->created_at->format('F j, Y') }}
+                            <!-- FIX: Added 'calendar-alt' icon class and removed the invalid empty class attribute -->
+                            <i class="fas fa-calendar-alt mr-1"></i>Joined {{ $user->created_at->format('F j, Y') }}
                         </div>
                     </div>
                     <div class="text-right">
@@ -23,13 +24,15 @@
             <!-- Profile Navigation Tabs -->
             <div class="mt-6 bg-white shadow-sm sm:rounded-t-lg">
                 <nav class="flex border-b">
-                    <a href="{{ route('users.show', ['user' => $user, 'tab' => 'tweets']) }}" class="px-4 py-2 text-sm font-medium transition-colors duration-200 {{ $tab === 'tweets' ? 'bg-blue-100 text-blue-800' : 'text-gray-500 hover:bg-blue-100' }} border rounded">
+                    <!-- Note: The 'border rounded' on the <a> tags within a flex-nav might look odd. 
+                         I've kept the classes but usually, tabs are styled without individual borders. -->
+                    <a href="{{ route('users.show', ['user' => $user, 'tab' => 'tweets']) }}" class="px-4 py-2 text-sm font-medium transition-colors duration-200 {{ $tab === 'tweets' ? 'bg-blue-100 text-blue-800 border-b-2 border-blue-600' : 'text-gray-500 hover:bg-blue-50' }} ">
                         Tweets ({{ $totalTweets }})
                     </a>
-                    <a href="{{ route('users.show', ['user' => $user, 'tab' => 'likes']) }}" class="px-4 py-2 text-sm font-medium transition-colors duration-200 {{ $tab === 'likes' ? 'bg-red-100 text-red-600' : 'text-gray-500 hover:bg-red-100' }} border rounded">
+                    <a href="{{ route('users.show', ['user' => $user, 'tab' => 'likes']) }}" class="px-4 py-2 text-sm font-medium transition-colors duration-200 {{ $tab === 'likes' ? 'bg-red-100 text-red-600 border-b-2 border-red-600' : 'text-gray-500 hover:bg-red-50' }} ">
                         Likes ({{ $totalLikes }})
                     </a>
-                    <a href="{{ route('users.show', ['user' => $user, 'tab' => 'retweets']) }}" class="px-4 py-2 text-sm font-medium transition-colors duration-200 {{ $tab === 'retweets' ? 'bg-gray-100 text-gray-800' : 'text-gray-500 hover:bg-gray-100' }} border rounded">
+                    <a href="{{ route('users.show', ['user' => $user, 'tab' => 'retweets']) }}" class="px-4 py-2 text-sm font-medium transition-colors duration-200 {{ $tab === 'retweets' ? 'bg-gray-100 text-gray-800 border-b-2 border-gray-600' : 'text-gray-500 hover:bg-gray-50' }} ">
                         Retweets ({{ $totalRetweets }})
                     </a>
                 </nav>
@@ -46,7 +49,7 @@
                 @endif
 
                 @forelse($tweets as $tweet)
-                    <div class="border-b py-3">
+                    <div class="border-b py-3" id="tweet-{{ $tweet->id }}">
                         @if($tweet->user)
                             <div class="flex items-center text-sm text-gray-600 mb-1">
                                 <span class="font-medium">{{ $tweet->user->name }}</span>
@@ -59,13 +62,28 @@
                             </div>
                         @endif
                         <div class="text-sm text-gray-800">{{ $tweet->content }}</div>
-                        <div class="flex items-center mt-1 text-xs text-gray-500">
-                            <span class="flex items-center">
-                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <div class="flex items-center space-x-4 mt-2">
+                            <!-- Like Button -->
+                            @auth
+                            <button 
+                                onclick="toggleLike({{ $tweet->id }})"
+                                class="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors {{ $tweet->isLikedBy(auth()->user()) ? 'text-red-500' : '' }}"
+                                id="like-btn-{{ $tweet->id }}"
+                            >
+                                <svg 
+                                    class="w-5 h-5" 
+                                    fill="{{ $tweet->isLikedBy(auth()->user()) ? 'currentColor' : 'none' }}" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24" 
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                 </svg>
-                                {{ $tweet->likes_count ?? $tweet->likes->count() ?? 0 }}
-                            </span>
+                                <span id="like-count-{{ $tweet->id }}" class="text-sm">
+                                    {{ $tweet->likes_count ?? $tweet->likes()->count() ?? 0 }}
+                                </span>
+                            </button>
+                            @endauth
                         </div>
                     </div>
                 @empty
@@ -84,4 +102,44 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            function toggleLike(tweetId) {
+                fetch(`/tweets/${tweetId}/like`, { 
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        // Throw an error if the HTTP status is not OK (e.g., 401, 500)
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const likeBtn = document.getElementById(`like-btn-${tweetId}`);
+                    const likeCount = document.getElementById(`like-count-${tweetId}`);
+                    
+                    // Update like count
+                    likeCount.textContent = data.likes_count;
+                    
+                    // Toggle like button appearance
+                    const svg = likeBtn.querySelector('svg');
+                    if (data.liked) {
+                        svg.setAttribute('fill', 'currentColor');
+                        likeBtn.classList.add('text-red-500');
+                    } else {
+                        svg.setAttribute('fill', 'none');
+                        likeBtn.classList.remove('text-red-500');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        </script>
+    @endpush
 </x-app-layout>
