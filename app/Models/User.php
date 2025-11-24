@@ -9,21 +9,15 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
-     * The primary key associated with the table.
+     * The primary key for the model.
      *
      * @var string
      */
-    protected $primaryKey = 'user_id';
+    protected $primaryKey = 'user_id'; // FIX: Changed from 'id' to 'user_id'
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -57,7 +51,7 @@ class User extends Authenticatable
      */
     public function getAuthIdentifierName()
     {
-        return 'user_id';
+        return 'user_id'; // FIX: Changed from 'id' to 'user_id'
     }
 
     /**
@@ -67,21 +61,23 @@ class User extends Authenticatable
      */
     public function getAuthIdentifier()
     {
-        return $this->user_id;
+        return $this->user_id; // FIX: Changed from $this->id to $this->user_id
     }
 
-    public function tweets()
+   public function tweets()
     {
-        return $this->hasMany(\App\Models\Tweet::class, 'user_id', 'user_id');
+        return $this->hasMany(Tweet::class, 'user_id');
     }
 
-    public function likes()
-    {
-        return $this->hasMany(\App\Models\Like::class, 'user_id', 'user_id');
-    }
+    // In app/Models/User.php
+public function likes()
+{
+    return $this->hasMany(Like::class, 'user_id');
+}
 
     public function retweets()
     {
-        return $this->hasMany(\App\Models\Retweet::class, 'user_id', 'user_id');
+        // Same as above, ensuring correct local key reference
+        return $this->hasMany(\App\Models\Retweet::class, 'user_id', 'user_id'); // FIX: Changed 'id' to 'user_id' for clarity/consistency
     }
 }

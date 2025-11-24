@@ -20,7 +20,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::post('/tweets', [TweetController::class, 'store'])->name('tweets.store');
-    Route::post('/tweets/{tweet}/like', [TweetController::class, 'like'])->name('tweets.like');
+    Route::match(['post', 'delete'], '/tweets/{tweet}/like', [TweetController::class, 'like'])->name('tweets.like');
     Route::post('/tweets/{tweet}/retweet', [TweetController::class, 'retweet'])->name('tweets.retweet');
     Route::get('/tweets/{tweet}/edit', [TweetController::class, 'edit'])->name('tweets.edit');
     Route::put('/tweets/{tweet}', [TweetController::class, 'update'])->name('tweets.update');

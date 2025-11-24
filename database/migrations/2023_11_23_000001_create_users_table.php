@@ -9,7 +9,7 @@ return new class extends Migration
     public function up()
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id('user_id');
+            $table->id();  // ← Change from id('user_id') to id()
             $table->string('name', 191);
             $table->string('email', 191)->unique();
             $table->timestamp('email_verified_at')->nullable();
