@@ -72,8 +72,8 @@ class User extends Authenticatable
     public function likes()
     {
         // This is fine, as 'user_id' is the foreign key on the 'likes' table, 
-        // and 'id' here is correctly replaced by the model's $primaryKey 'user_id'.
-        return $this->hasMany(\App\Models\Like::class, 'user_id', 'user_id'); // FIX: Changed 'id' to 'user_id' for clarity/consistency
+        // and 'user_id' is the local key for this model.
+        return $this->hasMany(\App\Models\Like::class, 'user_id', 'user_id');
     }
 
     public function retweets()

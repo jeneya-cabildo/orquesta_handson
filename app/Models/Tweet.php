@@ -19,10 +19,9 @@ class Tweet extends Model
      * The user who posted the tweet.
      */
     public function user()
-{
-    // ...
-    return $this->belongsTo(User::class, 'user_id', 'user_id');
-}
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     public function edits()
     {
@@ -51,7 +50,6 @@ class Tweet extends Model
         // Checks the 'likes' relationship for an existing record tied to the current user.
         return $this->likes()->where('user_id', $user->getAuthIdentifier())->exists();
     }
-
     /**
      * Check if the tweet has been retweeted by the given user.
      * This method is also necessary for the logic in the Blade template.
@@ -64,4 +62,3 @@ class Tweet extends Model
         // Checks the 'retweets' relationship for an existing record tied to the current user.
         return $this->retweets()->where('user_id', $user->getAuthIdentifier())->exists();
     }
-}
