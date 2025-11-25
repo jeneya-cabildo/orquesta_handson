@@ -62,3 +62,4 @@ class Tweet extends Model
         // Checks the 'retweets' relationship for an existing record tied to the current user.
         return $this->retweets()->where('user_id', $user->getAuthIdentifier())->exists();
     }
+}
