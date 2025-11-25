@@ -16,7 +16,11 @@ return new class extends Migration
             $table->integer('retweets')->default(0);
             $table->timestamps();
             
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            // Foreign key reference to users table
+            $table->foreign('user_id')
+                  ->references('id')
+                  ->on('users')
+                  ->onDelete('cascade');
         });
     }
 
